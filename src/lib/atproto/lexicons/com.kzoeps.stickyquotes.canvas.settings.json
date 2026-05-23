@@ -1,0 +1,69 @@
+{
+  "lexicon": 1,
+  "id": "com.kzoeps.stickyquotes.canvas.settings",
+  "description": "A public singleton settings record for one user's sticky quote canvas preferences.",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "Optional per-user canvas settings. Use record key `self`; do not store note IDs here because quote records are listed by collection.",
+      "key": "literal:self",
+      "record": {
+        "type": "object",
+        "required": ["$type", "schemaVersion", "updatedAt"],
+        "properties": {
+          "$type": {
+            "type": "string",
+            "const": "com.kzoeps.stickyquotes.canvas.settings",
+            "description": "Record type discriminator. Must match this lexicon ID."
+          },
+          "schemaVersion": {
+            "type": "integer",
+            "const": 1,
+            "description": "Record schema version. Version 1 is the initial canvas settings shape."
+          },
+          "defaultColor": {
+            "type": "string",
+            "enum": ["yellow", "pink", "blue", "green", "purple", "orange", "gray"],
+            "knownValues": ["yellow", "pink", "blue", "green", "purple", "orange", "gray"],
+            "description": "Optional default sticky note color token from the fixed palette."
+          },
+          "lastViewport": {
+            "type": "ref",
+            "ref": "#lastViewport",
+            "description": "Optional last viewport center and zoom for restoring a user's canvas view."
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "ISO datetime when this settings record was last changed."
+          }
+        }
+      }
+    },
+    "lastViewport": {
+      "type": "object",
+      "description": "Last known viewport center in world coordinates and zoom as a fixed-point integer.",
+      "required": ["x", "y", "zoomX1000"],
+      "properties": {
+        "x": {
+          "type": "integer",
+          "minimum": -1000000000,
+          "maximum": 1000000000,
+          "description": "World x-coordinate at the viewport center."
+        },
+        "y": {
+          "type": "integer",
+          "minimum": -1000000000,
+          "maximum": 1000000000,
+          "description": "World y-coordinate at the viewport center."
+        },
+        "zoomX1000": {
+          "type": "integer",
+          "minimum": 200,
+          "maximum": 3000,
+          "description": "Viewport zoom multiplier stored as zoom * 1000. A value of 1000 means 1.0x."
+        }
+      }
+    }
+  }
+}

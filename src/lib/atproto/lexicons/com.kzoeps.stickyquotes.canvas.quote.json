@@ -1,0 +1,126 @@
+{
+  "lexicon": 1,
+  "id": "com.kzoeps.stickyquotes.canvas.quote",
+  "description": "A public sticky-note quote record stored in a user's PDS and rendered on that user's infinite canvas.",
+  "defs": {
+    "main": {
+      "type": "record",
+      "description": "One sticky note containing a quote, its source metadata, canvas position, persistent rotation, and display styling.",
+      "key": "tid",
+      "record": {
+        "type": "object",
+        "required": ["$type", "schemaVersion", "text", "position", "rotationDegX100", "color", "createdAt", "updatedAt"],
+        "properties": {
+          "$type": {
+            "type": "string",
+            "const": "com.kzoeps.stickyquotes.canvas.quote",
+            "description": "Record type discriminator. Must match this lexicon ID."
+          },
+          "schemaVersion": {
+            "type": "integer",
+            "const": 1,
+            "description": "Record schema version. Version 1 is the initial sticky quote record shape."
+          },
+          "text": {
+            "type": "string",
+            "minGraphemes": 1,
+            "maxGraphemes": 2000,
+            "description": "Quote text displayed on the sticky note. Store plain text only, never HTML."
+          },
+          "author": {
+            "type": "string",
+            "maxGraphemes": 200,
+            "description": "Optional person or source credited for the quote."
+          },
+          "sourceTitle": {
+            "type": "string",
+            "maxGraphemes": 300,
+            "description": "Optional title for the work, article, book, talk, or other source."
+          },
+          "sourceUri": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 2048,
+            "description": "Optional absolute URI for the quote source."
+          },
+          "position": {
+            "type": "ref",
+            "ref": "#position",
+            "description": "Canvas world position for the sticky note's top-left corner."
+          },
+          "size": {
+            "type": "ref",
+            "ref": "#size",
+            "description": "Optional sticky note dimensions reserved for future resizing support."
+          },
+          "rotationDegX100": {
+            "type": "integer",
+            "minimum": -800,
+            "maximum": 800,
+            "description": "Persistent rotation in hundredths of a degree. Render as rotationDegX100 / 100."
+          },
+          "color": {
+            "type": "string",
+            "enum": ["yellow", "pink", "blue", "green", "purple", "orange", "gray"],
+            "knownValues": ["yellow", "pink", "blue", "green", "purple", "orange", "gray"],
+            "description": "Sticky note color token from the app's fixed palette."
+          },
+          "zIndex": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000,
+            "description": "Optional stacking order for overlapping sticky notes. Higher values render above lower values."
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "ISO datetime when this quote record was first created."
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "datetime",
+            "description": "ISO datetime when this quote record was last changed."
+          }
+        }
+      }
+    },
+    "position": {
+      "type": "object",
+      "description": "Integer canvas world coordinates. These are independent of the current viewport pan or zoom.",
+      "required": ["x", "y"],
+      "properties": {
+        "x": {
+          "type": "integer",
+          "minimum": -1000000000,
+          "maximum": 1000000000,
+          "description": "Horizontal world coordinate in canvas units."
+        },
+        "y": {
+          "type": "integer",
+          "minimum": -1000000000,
+          "maximum": 1000000000,
+          "description": "Vertical world coordinate in canvas units."
+        }
+      }
+    },
+    "size": {
+      "type": "object",
+      "description": "Sticky note dimensions in canvas world units.",
+      "required": ["width", "height"],
+      "properties": {
+        "width": {
+          "type": "integer",
+          "minimum": 160,
+          "maximum": 600,
+          "description": "Sticky note width in world units. The app default is 240."
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 120,
+          "maximum": 500,
+          "description": "Sticky note height in world units. The app default is 180."
+        }
+      }
+    }
+  }
+}
