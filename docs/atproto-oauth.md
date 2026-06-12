@@ -54,15 +54,15 @@ If the app is opened from another `http://` origin, OAuth startup fails with an 
 
 ## Production metadata
 
-Production OAuth is still pending final deployment origin confirmation.
+Production OAuth uses the canonical Posties deployment origin.
 
-`public/client-metadata.json` currently contains placeholder production metadata for:
+`public/client-metadata.json` contains production metadata for:
 
 ```text
-https://kzoeps.com/client-metadata.json
+https://posties.kzoeps.com/client-metadata.json
 ```
 
-Before release, confirm the real production origin and update the hosted metadata so these values match exactly:
+Before changing domains, update the hosted metadata so these values match exactly:
 
 - `client_id`
 - `client_uri`
@@ -71,8 +71,8 @@ Before release, confirm the real production origin and update the hosted metadat
 
 Current placeholder values:
 
-- client metadata URL: `https://kzoeps.com/client-metadata.json`
-- callback URL: `https://kzoeps.com/oauth/callback`
+- client metadata URL: `https://posties.kzoeps.com/client-metadata.json`
+- callback URL: `https://posties.kzoeps.com/oauth/callback`
 - scope: `atproto repo:com.kzoeps.stickyquotes.canvas.quote`
 - token endpoint auth method: `none`
 - DPoP-bound access tokens: enabled

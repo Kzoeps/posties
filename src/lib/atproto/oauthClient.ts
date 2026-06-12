@@ -9,6 +9,7 @@ import {
   type RuntimeImplementation,
 } from '@atproto/oauth-client'
 
+import { loadPublicConfig } from '../config'
 import {
   clearActiveDid,
   createBrowserDpopKey,
@@ -24,7 +25,7 @@ const HANDLE_RESOLVER_SERVICE = 'https://bsky.social'
 const OAUTH_RESPONSE_MODE: OAuthResponseMode = 'query'
 const OAUTH_SCOPE = 'atproto repo:com.kzoeps.stickyquotes.canvas.quote'
 const CALLBACK_PATH = '/oauth/callback'
-const PRODUCTION_CLIENT_METADATA_URL = 'https://kzoeps.com/client-metadata.json'
+const PRODUCTION_CLIENT_METADATA_URL = 'https://posties.kzoeps.com/client-metadata.json'
 
 let oauthClient: OAuthClient | undefined
 const memoryLocks = new Map<string, Promise<unknown>>()
@@ -58,12 +59,12 @@ export class AtprotoOAuthError extends Error {
   }
 }
 
-/** Returns the singleton ATProto OAuth client configured for browser loopback development. */
+/** Returns the singleton ATProto OAuth client configured for local loopback or production metadata. */
 export function getAtprotoOAuthClient(): OAuthClient {
   assertBrowserOAuthRuntime()
   oauthClient ??= new OAuthClient({
     responseMode: OAUTH_RESPONSE_MODE,
-    clientMetadata: buildDevelopmentClientMetadata(),
+    clientMetadata: buildOAuthClientMetadata(),
     handleResolver: HANDLE_RESOLVER_SERVICE,
     stateStore: oauthStateStore,
     sessionStore: oauthSessionStore,
@@ -92,7 +93,7 @@ export async function createOAuthAuthorizationUrl({
   signal,
 }: StartOAuthLoginOptions): Promise<URL> {
   const normalizedHandle = normalizeHandle(handle)
-  const redirectUri = getLoopbackRedirectUri()
+  const redirectUri = getOAuthRedirectUri()
 
   try {
     return getAtprotoOAuthClient().authorize(normalizedHandle, {
@@ -133,7 +134,7 @@ export async function completeOAuthCallback(options: CompleteOAuthCallbackOption
 
   try {
     const result = await getAtprotoOAuthClient().callback(params, {
-      redirect_uri: getLoopbackRedirectUri(),
+      redirect_uri: getOAuthRedirectUri(),
     })
     await setActiveDid(result.session.did)
 
@@ -196,20 +197,24 @@ export async function logoutActiveOAuthSession(): Promise<void> {
   }
 }
 
+/** Returns the redirect URI matching local loopback development or deployed production config. */
+export function getOAuthRedirectUri(): OAuthRedirectUri {
+  assertBrowserOAuthRuntime()
+  if (isLoopbackOrigin(window.location.origin)) return getLoopbackRedirectUri()
+
+  return loadPublicConfig().oauthCallbackUrl as OAuthRedirectUri
+}
+
 /** Returns the loopback redirect URI matching the current dev server origin. */
 export function getLoopbackRedirectUri(): OAuthRedirectUri {
   assertBrowserOAuthRuntime()
   const redirectUri = new URL(CALLBACK_PATH, window.location.origin)
 
-  if (redirectUri.protocol !== 'http:') {
-    return redirectUri.toString() as OAuthRedirectUri
-  }
-
   if (redirectUri.hostname === 'localhost') {
     redirectUri.hostname = '127.0.0.1'
   }
 
-  if (redirectUri.hostname !== '127.0.0.1' && redirectUri.hostname !== '[::1]') {
+  if (!isLoopbackOrigin(redirectUri.origin)) {
     throw new AtprotoOAuthError(
       `Local OAuth loopback mode requires localhost, 127.0.0.1, or [::1], but the app is running on ${window.location.origin}. Use a loopback dev URL or configure production metadata first.`,
     )
@@ -228,20 +233,37 @@ export function getAtprotoOAuthScope(): string {
   return OAUTH_SCOPE
 }
 
-function buildDevelopmentClientMetadata(): OAuthClientMetadataInput {
-  const redirectUri = getLoopbackRedirectUri()
-  return {
-    client_id: buildAtprotoLoopbackClientId({
-      scope: OAUTH_SCOPE,
+function buildOAuthClientMetadata(): OAuthClientMetadataInput {
+  const redirectUri = getOAuthRedirectUri()
+
+  if (isLoopbackOrigin(window.location.origin)) {
+    return {
+      client_id: buildAtprotoLoopbackClientId({
+        scope: OAUTH_SCOPE,
+        redirect_uris: [redirectUri],
+      }),
+      client_name: 'Sticky Quote Canvas (development)',
+      client_uri: window.location.origin,
       redirect_uris: [redirectUri],
-    }),
-    client_name: 'Sticky Quote Canvas (development)',
-    client_uri: window.location.origin,
+      scope: OAUTH_SCOPE,
+      grant_types: ['authorization_code', 'refresh_token'],
+      response_types: ['code'],
+      application_type: 'native',
+      token_endpoint_auth_method: 'none',
+      dpop_bound_access_tokens: true,
+    }
+  }
+
+  const config = loadPublicConfig()
+  return {
+    client_id: config.oauthClientMetadataUrl,
+    client_name: 'Sticky Quote Canvas',
+    client_uri: config.appOrigin,
     redirect_uris: [redirectUri],
     scope: OAUTH_SCOPE,
     grant_types: ['authorization_code', 'refresh_token'],
     response_types: ['code'],
-    application_type: 'native',
+    application_type: 'web',
     token_endpoint_auth_method: 'none',
     dpop_bound_access_tokens: true,
   }
@@ -304,6 +326,15 @@ function normalizeHandle(handle: string): string {
   }
 
   return normalized
+}
+
+function isLoopbackOrigin(origin: string): boolean {
+  try {
+    const url = new URL(origin)
+    return url.protocol === 'http:' && (url.hostname === 'localhost' || url.hostname === '127.0.0.1' || url.hostname === '[::1]')
+  } catch {
+    return false
+  }
 }
 
 function toSubtleDigestName(name: 'sha256' | 'sha384' | 'sha512'): AlgorithmIdentifier {

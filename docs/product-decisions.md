@@ -11,7 +11,7 @@ Date: 2026-05-21
 - **Canvas model:** v1 has one infinite canvas per user. Do not add `boardId` or multi-board support yet.
 - **Privacy stance:** all quote and settings records are public PDS data. The app must warn users before they create quotes.
 - **Development OAuth:** use ATProto OAuth loopback mode for local development.
-- **Production OAuth:** production origin and hosted client metadata are still pending. Do not treat `https://kzoeps.com` placeholders as release-ready until deployment is confirmed.
+- **Production OAuth:** canonical production origin is `https://posties.kzoeps.com`; hosted client metadata must match that origin and `/oauth/callback` exactly.
 - **Quote lifecycle:** v1 supports creating, editing, moving, and deleting quotes.
 - **Colors:** v1 uses the fixed palette from the lexicon: `yellow`, `pink`, `blue`, `green`, `purple`, `orange`, `gray`.
 - **Maximum quote length:** quote text is limited to 2000 graphemes.
@@ -21,7 +21,7 @@ Date: 2026-05-21
 - **Home route:** signed-out `/` is a landing page. Signed-in `/` resolves the active DID to the current handle and redirects to `/:handle`.
 - **Canonicalization:** public handle pages normalize casing/leading `@`, then canonicalize to the owner DID document's current handle when it differs.
 - **Ownership UI:** public pages are readable by everyone, but Add/Edit/Delete/drag/retry controls render only when the active OAuth DID equals the page owner DID.
-- **Public toolbar:** `/:handle` shows the owner handle and owner DID, with a copy-share-link button next to the identity/share area.
+- **Public toolbar:** `/:handle` shows the owner public avatar, display name, handle, an icon-only share button that copies the page URL, and sign-in/logout controls.
 
 ## Known limitations
 

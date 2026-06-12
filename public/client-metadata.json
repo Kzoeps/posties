@@ -1,8 +1,8 @@
 {
-  "client_id": "https://kzoeps.com/client-metadata.json",
+  "client_id": "https://posties.kzoeps.com/client-metadata.json",
   "client_name": "Sticky Quote Canvas",
-  "client_uri": "https://kzoeps.com",
-  "redirect_uris": ["https://kzoeps.com/oauth/callback"],
+  "client_uri": "https://posties.kzoeps.com",
+  "redirect_uris": ["https://posties.kzoeps.com/oauth/callback"],
   "scope": "atproto repo:com.kzoeps.stickyquotes.canvas.quote",
   "grant_types": ["authorization_code", "refresh_token"],
   "response_types": ["code"],

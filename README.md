@@ -83,7 +83,7 @@ Never commit API keys, OAuth secrets, refresh tokens, or Linear keys. Linear aut
 
 Local development uses ATProto OAuth loopback mode. The app normalizes `localhost` to `127.0.0.1` for callback URLs and rejects non-loopback `http://` origins.
 
-Production is not finalized yet. Before release, confirm the deployment origin and update/host `public/client-metadata.json` so these match exactly:
+Production is configured for `https://posties.kzoeps.com`. If the deployment origin changes, update/host `public/client-metadata.json` so these match exactly:
 
 - `client_id`
 - `client_uri`
@@ -190,7 +190,7 @@ Use a non-sensitive test account because records are public.
 
 - PDS records are public; v1 has no client-side encryption.
 - Old handle URLs can only canonicalize if the old handle still resolves to the same DID. Reassigned or unresolvable handles need a future server-side alias/history design.
-- Production OAuth metadata/origin is still pending and must be finalized before deployment.
+- Production OAuth metadata is configured for `https://posties.kzoeps.com`; update `public/client-metadata.json` and Vercel env vars if the canonical domain changes.
 - The build currently warns that the main bundle is larger than 500 kB. Likely follow-up: route/code splitting for ATProto and mock/test-only modules.
 - Browser OAuth token and DPoP key material are readable by app JavaScript. Add a strict CSP before production and never render quote text as HTML.
 - Custom lexicon validation can vary by PDS. The app validates locally and currently asks PDS writes not to enforce custom lexicon validation by default.
