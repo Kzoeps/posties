@@ -136,9 +136,10 @@ export function CanvasPage({ ownerDid, ownerHandle, ownerPdsEndpoint, activeDid,
   }
 
   return (
-    <>
+    <main className="public-canvas-shell" data-owner-mode={isOwner ? 'owner' : 'viewer'}>
       <InfiniteCanvas
         quotes={quotes}
+        initialPan={PUBLIC_CANVAS_INITIAL_PAN}
         onMoveQuote={isOwner ? handleMoveQuote : undefined}
         onUpdateQuote={isOwner ? handleUpdateQuote : undefined}
         onDeleteQuote={isOwner ? handleDeleteQuote : undefined}
@@ -151,60 +152,58 @@ export function CanvasPage({ ownerDid, ownerHandle, ownerPdsEndpoint, activeDid,
           <p>
             {quotesQuery.isError
               ? quotesQuery.error.message
-              : `Reading public records from ${ownerDid}.`}
+              : `Opening notes for @${ownerHandle}.`}
           </p>
         </aside>
       ) : null}
 
       {isOwner ? (
-        <>
-          <section className="canvas-command-bar" aria-label="Canvas controls">
-            <button
-              className="quote-button quote-button--primary canvas-command-bar__add"
-              type="button"
-              disabled={!activeDid}
-              onClick={() => setIsComposerDialogOpen(true)}
-            >
-              <span aria-hidden="true">＋</span>
-              Add note
-            </button>
-            <div className="canvas-command-bar__copy">
-              <span className="canvas-command-bar__kicker">Public PDS notebook</span>
-              <span>Place quotes as paper slips on the canvas.</span>
-            </div>
-          </section>
-
-          <dialog
-            ref={composerDialogRef}
-            className="note-dialog"
-            aria-label="Add note"
-            onCancel={() => setIsComposerDialogOpen(false)}
-            onClose={() => setIsComposerDialogOpen(false)}
-            onClick={handleComposerDialogClick}
+        <section className="canvas-command-dock" aria-label="Canvas controls">
+          <button
+            className="quote-button quote-button--primary canvas-command-dock__add"
+            type="button"
+            disabled={!activeDid}
+            onClick={() => setIsComposerDialogOpen(true)}
           >
-            <div className="note-dialog__sheet">
-              <button className="note-dialog__close" type="button" aria-label="Close add note dialog" onClick={() => setIsComposerDialogOpen(false)}>
-                ×
-              </button>
-              <QuoteComposer
-                className="quote-composer--dialog"
-                onSubmit={handleCreateQuoteFromDialog}
-                disabled={!activeDid}
-                isSubmitting={createQuoteMutation.isPending}
-                submitLabel="Place note"
-              />
-              {quotesQuery.isError ? (
-                <p className="quote-composer__error" role="alert">
-                  {quotesQuery.error.message}
-                </p>
-              ) : null}
-            </div>
-          </dialog>
-        </>
+            <span aria-hidden="true">＋</span>
+            Add note
+          </button>
+        </section>
       ) : null}
-    </>
+
+      {isOwner ? (
+        <dialog
+          ref={composerDialogRef}
+          className="note-dialog note-dialog--side-panel"
+          aria-label="Add a new note"
+          onCancel={() => setIsComposerDialogOpen(false)}
+          onClose={() => setIsComposerDialogOpen(false)}
+          onClick={handleComposerDialogClick}
+        >
+          <div className="note-dialog__sheet canvas-composer-panel" role="document">
+            <button className="note-dialog__close" type="button" aria-label="Close add note panel" onClick={() => setIsComposerDialogOpen(false)}>
+              ×
+            </button>
+            <QuoteComposer
+              className="quote-composer--dialog quote-composer--side-panel"
+              onSubmit={handleCreateQuoteFromDialog}
+              disabled={!activeDid}
+              isSubmitting={createQuoteMutation.isPending}
+              submitLabel="Place on canvas"
+            />
+            {quotesQuery.isError ? (
+              <p className="quote-composer__error" role="alert">
+                {quotesQuery.error.message}
+              </p>
+            ) : null}
+          </div>
+        </dialog>
+      ) : null}
+    </main>
   )
 }
+
+const PUBLIC_CANVAS_INITIAL_PAN: CanvasPosition = { x: 380, y: 160 }
 
 function requireCachedQuote(quotes: ReadonlyMap<string, QuoteCacheRecord>, quoteId: string, action: string): QuoteCacheRecord {
   const quote = quotes.get(quoteId)

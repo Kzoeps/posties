@@ -31,13 +31,13 @@ test('signed-out home is a landing page and public handle pages are read-only', 
   })
 
   await page.goto('/')
-  await expect(page.getByRole('heading', { name: 'Public notes, pinned to your handle' })).toBeVisible()
-  await expect(page.getByRole('link', { name: 'Sign in with ATProto' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Sticky Quote Canvas' })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Continue with Bluesky' })).toBeVisible()
 
   await page.goto('/alice.test')
   await expect(noteByText(page, 'A public note for everyone.')).toBeVisible()
   await expect(page.getByLabel('Public notes identity and account controls')).toContainText('@alice.test')
-  await expect(page.getByLabel('Public notes identity and account controls')).toContainText(ALICE_DID)
+  await expect(page.getByLabel('Public notes identity and account controls')).not.toContainText(ALICE_DID)
   await expect(page.getByRole('button', { name: 'Add note' })).toHaveCount(0)
   await expect(noteByText(page, 'A public note for everyone.').getByRole('button', { name: 'Edit' })).toHaveCount(0)
   await expect(noteByText(page, 'A public note for everyone.').getByRole('button', { name: 'Delete' })).toHaveCount(0)
@@ -63,8 +63,8 @@ test('mocked OAuth lands on the canonical handle page and can copy the share lin
 
   const toolbar = page.getByLabel('Public notes identity and account controls')
   await expect(toolbar).toContainText('@alice.test')
-  await expect(toolbar).toContainText(MOCK_DID)
-  await toolbar.getByRole('button', { name: 'Copy link' }).click()
+  await expect(toolbar).not.toContainText(MOCK_DID)
+  await toolbar.getByRole('button', { name: 'Share @alice.test page' }).click()
   await expect(toolbar.getByRole('button', { name: 'Copied' })).toBeVisible()
 })
 
@@ -105,6 +105,7 @@ test('mocked OAuth can create, reload, move, reload, edit, and delete a sticky q
   const editForm = page.getByRole('form', { name: 'Edit note' })
   await editForm.getByLabel('Note').fill('Do the thing, then write the test.')
   await editForm.getByRole('button', { name: 'Save' }).click()
+  await expect(editForm).toHaveCount(0)
   await expect(noteByText(page, 'Do the thing, then write the test.')).toBeVisible()
 
   await page.reload()
@@ -129,7 +130,8 @@ test('signed-in Alice viewing Bob stays read-only', async ({ page }) => {
 
   await page.goto('/bob.test')
   await expect(noteByText(page, 'Bob owns this note.')).toBeVisible()
-  await expect(page.getByLabel('Public notes identity and account controls')).toContainText('Signed in as viewer')
+  await expect(page.getByLabel('Public notes identity and account controls')).toContainText('@bob.test')
+  await expect(page.getByLabel('Public notes identity and account controls')).not.toContainText('Signed in as viewer')
   await expect(page.getByRole('button', { name: 'Add note' })).toHaveCount(0)
   await expect(noteByText(page, 'Bob owns this note.').getByRole('button', { name: 'Edit' })).toHaveCount(0)
   await expect(noteByText(page, 'Bob owns this note.').getByRole('button', { name: 'Delete' })).toHaveCount(0)
@@ -140,31 +142,32 @@ test('mocked create failure leaves the composer recoverable', async ({ page }) =
   await failNextMockOperation(page, 'createRecord', 'network')
 
   await page.getByRole('button', { name: 'Add note' }).click()
-  const composer = page.getByRole('form', { name: 'Add note' })
-  await composer.getByLabel('Note').fill('This create should fail once.')
-  await composer.getByRole('button', { name: 'Place note' }).click()
+  const composer = page.getByRole('form', { name: 'Add a new note' })
+  await composer.getByLabel('Quote').fill('This create should fail once.')
+  await composer.getByRole('button', { name: 'Place on canvas' }).click()
 
   await expect(composer.getByRole('alert')).toContainText('Could not create quote')
-  await expect(composer.getByLabel('Note')).toHaveValue('This create should fail once.')
+  await expect(composer.getByLabel('Quote')).toHaveValue('This create should fail once.')
 
-  await composer.getByRole('button', { name: 'Place note' }).click()
+  await composer.getByRole('button', { name: 'Place on canvas' }).click()
   await expect(noteByText(page, 'This create should fail once.')).toBeVisible()
 })
 
 async function signInWithMockOAuth(page: Page): Promise<void> {
   await page.goto('/login')
-  await page.getByLabel('ATProto handle').fill('alice.test')
-  await page.getByRole('button', { name: 'Continue with ATProto' }).click()
+  await page.getByRole('textbox', { name: 'Handle' }).fill('alice.test')
+  await page.getByRole('button', { name: 'Log in' }).click()
   await expect(page).toHaveURL(/\/alice\.test$/)
-  await expect(page.getByLabel('Public notes identity and account controls')).toContainText('Signed in as owner')
+  await expect(page.getByLabel('Public notes identity and account controls')).toContainText('@alice.test')
+  await expect(page.getByRole('button', { name: 'Log out' })).toBeVisible()
 }
 
 async function createQuote(page: Page, text: string, author: string): Promise<void> {
   await page.getByRole('button', { name: 'Add note' }).click()
-  const composer = page.getByRole('form', { name: 'Add note' })
-  await composer.getByLabel('Note').fill(text)
+  const composer = page.getByRole('form', { name: 'Add a new note' })
+  await composer.getByLabel('Quote').fill(text)
   await composer.getByLabel('Author').fill(author)
-  await composer.getByRole('button', { name: 'Place note' }).click()
+  await composer.getByRole('button', { name: 'Place on canvas' }).click()
 }
 
 function noteByText(page: Page, text: string): Locator {

@@ -73,7 +73,7 @@ Current placeholder values:
 
 - client metadata URL: `https://kzoeps.com/client-metadata.json`
 - callback URL: `https://kzoeps.com/oauth/callback`
-- scope: `atproto transition:generic`
+- scope: `atproto repo:com.kzoeps.stickyquotes.canvas.quote`
 - token endpoint auth method: `none`
 - DPoP-bound access tokens: enabled
 
@@ -143,7 +143,7 @@ OAuth tokens and DPoP key material are browser-readable by design in this SPA. T
 - do not store API keys or secrets in source files or `.env.local`
 - keep `LINEAR_API_KEY` only in the shell environment for Linear automation
 
-All quote and settings records are public PDS records for v1. The UI warns users before they create quotes and on public handle pages.
+All quote and settings records are public PDS records for v1. OAuth only requests write access to `com.kzoeps.stickyquotes.canvas.quote`; public board reads do not require OAuth, settings writes are not currently requested, and board avatar/display-name chrome uses unauthenticated `app.bsky.actor.getProfile` reads from the public Bluesky AppView.
 
 ## Troubleshooting
 

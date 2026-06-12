@@ -133,10 +133,18 @@ export function StickyNote({ quote, onUpdate, onDelete, onRetry, className, styl
       ) : (
         <>
           {shouldShowTopbar ? (
-            <div className="sticky-note__topbar">
-              {status !== 'idle' ? <span className="sticky-note__status">{getStatusLabel(status)}</span> : <span />}
+            <div className="sticky-note__topbar" aria-label="Sticky note status and owner controls">
+              {status !== 'idle' ? <span className="sticky-note__status">{getStatusLabel(status)}</span> : null}
               {hasNoteActions ? (
-                <StickyNoteMenu quoteId={quote.id} onEdit={onUpdate ? startEditing : undefined} onDelete={onDelete} isDeleting={status === 'deleting'} />
+                <div className="sticky-note__owner-controls" aria-label="Owner note controls">
+                  <StickyNoteMenu
+                    quoteId={quote.id}
+                    onEdit={onUpdate ? startEditing : undefined}
+                    onDelete={onDelete}
+                    isDeleting={status === 'deleting'}
+                    className="sticky-note-menu--quiet"
+                  />
+                </div>
               ) : null}
             </div>
           ) : null}
@@ -177,13 +185,16 @@ function SourceLine({ sourceTitle, sourceUri }: SourceLineProps) {
 
   return (
     <p className="sticky-note__source">
-      Source:{' '}
       {safeHref ? (
         <a href={safeHref} target="_blank" rel="noreferrer noopener">
-          {label}
+          <span>{label}</span>
+          <span aria-hidden="true"> ↗</span>
         </a>
       ) : (
-        <span>{label}</span>
+        <>
+          <span>{label}</span>
+          <span aria-hidden="true"> ↗</span>
+        </>
       )}
     </p>
   )

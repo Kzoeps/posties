@@ -3,7 +3,7 @@
   "client_name": "Sticky Quote Canvas",
   "client_uri": "https://kzoeps.com",
   "redirect_uris": ["https://kzoeps.com/oauth/callback"],
-  "scope": "atproto transition:generic",
+  "scope": "atproto repo:com.kzoeps.stickyquotes.canvas.quote",
   "grant_types": ["authorization_code", "refresh_token"],
   "response_types": ["code"],
   "application_type": "web",

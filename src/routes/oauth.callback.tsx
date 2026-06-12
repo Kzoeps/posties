@@ -45,30 +45,28 @@ function OAuthCallbackRoute() {
     }
   }, [navigate, queryClient])
 
+  if (status !== 'error') {
+    return (
+      <section className="minimal-status-page" aria-labelledby="oauth-callback-title">
+        <div className="minimal-status-card">
+          <span className="minimal-status-dot" aria-hidden="true" />
+          <h1 id="oauth-callback-title">Signing in</h1>
+          <p role="status">{status === 'redirecting' ? 'Opening board' : 'One moment'}</p>
+        </div>
+      </section>
+    )
+  }
+
   return (
     <section className="placeholder-page" aria-labelledby="oauth-callback-title">
-      <p className="eyebrow">ATProto OAuth</p>
-      <h1 id="oauth-callback-title">{status === 'error' ? 'Sign-in needs a retry' : 'Finishing sign-in'}</h1>
-
-      {status === 'error' ? (
-        <>
-          <p className="quote-composer__error" role="alert">
-            {errorMessage ?? 'Could not complete ATProto OAuth. Start sign-in again from the login page.'}
-          </p>
-          <p>
-            OAuth callback links expire and can only be used once. Return to login, enter your handle, and start a fresh OAuth request.
-          </p>
-          <Link className="quote-button quote-button--primary" to="/login">
-            Back to login
-          </Link>
-        </>
-      ) : (
-        <p role="status">
-          {status === 'redirecting'
-            ? 'Session restored. Opening your handle page…'
-            : 'Completing the OAuth redirect and restoring your PDS session…'}
-        </p>
-      )}
+      <p className="eyebrow">Sign in</p>
+      <h1 id="oauth-callback-title">Needs a retry</h1>
+      <p className="quote-composer__error" role="alert">
+        {errorMessage ?? 'Could not complete login. Start again from the login page.'}
+      </p>
+      <Link className="quote-button quote-button--primary" to="/login">
+        Back to login
+      </Link>
     </section>
   )
 }

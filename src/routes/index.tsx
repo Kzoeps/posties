@@ -25,10 +25,12 @@ function HomeRoute() {
 
   if (sessionQuery.isPending) {
     return (
-      <section className="placeholder-page" aria-labelledby="restore-session-title">
-        <p className="eyebrow">ATProto OAuth</p>
-        <h1 id="restore-session-title">Opening your page</h1>
-        <p role="status">Restoring your ATProto session before routing you to your current handle page…</p>
+      <section className="minimal-status-page" aria-labelledby="restore-session-title">
+        <div className="minimal-status-card">
+          <span className="minimal-status-dot" aria-hidden="true" />
+          <h1 id="restore-session-title">Opening board</h1>
+          <p role="status">Checking session</p>
+        </div>
       </section>
     )
   }
@@ -80,38 +82,75 @@ function HomeRoute() {
   }
 
   return (
-    <section className="placeholder-page" aria-labelledby="redirect-title">
-      <p className="eyebrow">Shareable notes</p>
-      <h1 id="redirect-title">Finding your handle</h1>
-      <p role="status">Resolving your DID to the current handle so your notes page uses the canonical URL…</p>
+    <section className="minimal-status-page" aria-labelledby="redirect-title">
+      <div className="minimal-status-card">
+        <span className="minimal-status-dot" aria-hidden="true" />
+        <h1 id="redirect-title">Opening board</h1>
+        <p role="status">Finding your handle</p>
+      </div>
     </section>
   )
 }
 
 function LandingPage() {
   return (
-    <section className="placeholder-page landing-page" aria-labelledby="landing-title">
-      <div className="landing-page__copy">
-        <p className="eyebrow">Sticky Quote Canvas</p>
-        <h1 id="landing-title">Public notes, pinned to your handle</h1>
-        <p>
-          Open a shareable page like <code>/kzoeps.com</code> or <code>/alice.bsky.social</code> to read public sticky notes from that ATProto account's PDS.
+    <section className="landing-page landing-page--signed-out" aria-labelledby="landing-title">
+      <aside className="landing-page__sidebar" aria-label="Sticky Quote Canvas introduction">
+        <div className="landing-page__brand-block">
+          <p className="eyebrow landing-page__eyebrow">Sticky Quote Canvas</p>
+          <h1 id="landing-title" className="landing-page__title">
+            Sticky
+            <br />
+            Quote Canvas
+          </h1>
+          <div className="landing-page__divider" aria-hidden="true" />
+          <p className="landing-page__lede">A quiet space for public notes that inspire, remind, and stay.</p>
+        </div>
+
+        <div className="landing-page__auth-block">
+          <Link className="quote-button quote-button--primary landing-page__primary-action" to="/login">
+            <span className="landing-page__action-icon" aria-hidden="true">
+              ◈
+            </span>
+            Continue with Bluesky
+          </Link>
+          <p className="landing-page__signin-note">Sign in with your Bluesky handle using ATProto.</p>
+        </div>
+
+        <p className="auth-public-warning landing-page__public-warning" role="note">
+          <span className="landing-page__warning-icon" aria-hidden="true">
+            !
+          </span>
+          <span>
+            Everything you add is public on ATProto.
+            <br />
+            Don&apos;t save private or sensitive content.
+          </span>
         </p>
-        <p>
-          Sign in only when you want to create your own page. Editing controls appear exclusively on your canonical handle page.
-        </p>
+
+        <div className="landing-page__still-life" aria-hidden="true">
+          <div className="landing-page__plant">
+            <span className="landing-page__plant-stem landing-page__plant-stem--one" />
+            <span className="landing-page__plant-stem landing-page__plant-stem--two" />
+            <span className="landing-page__plant-stem landing-page__plant-stem--three" />
+          </div>
+          <div className="landing-page__vase" />
+          <div className="landing-page__books">
+            <span />
+            <span />
+          </div>
+        </div>
+      </aside>
+
+      <div className="landing-page__canvas-preview" aria-hidden="true">
+        <div className="landing-page__preview-note landing-page__preview-note--cream">
+          “Words are, of course, the most powerful drug used by mankind.”
+        </div>
+        <div className="landing-page__preview-note landing-page__preview-note--blue">
+          “I would always rather be happy than dignified.”
+        </div>
+        <div className="landing-page__preview-note landing-page__preview-note--green">“We read to know we are not alone.”</div>
       </div>
-      <div className="status-actions landing-page__actions">
-        <Link className="quote-button quote-button--primary" to="/login">
-          Sign in with ATProto
-        </Link>
-        <a className="quote-button quote-button--ghost" href="/kzoeps.com">
-          View example path
-        </a>
-      </div>
-      <p className="auth-public-warning" role="note">
-        Public data warning: this app reads and writes public PDS records. Do not store private notes or secrets here.
-      </p>
     </section>
   )
 }

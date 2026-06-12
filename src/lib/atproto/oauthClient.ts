@@ -22,7 +22,7 @@ import {
 
 const HANDLE_RESOLVER_SERVICE = 'https://bsky.social'
 const OAUTH_RESPONSE_MODE: OAuthResponseMode = 'query'
-const OAUTH_SCOPE = 'atproto transition:generic'
+const OAUTH_SCOPE = 'atproto repo:com.kzoeps.stickyquotes.canvas.quote'
 const CALLBACK_PATH = '/oauth/callback'
 const PRODUCTION_CLIENT_METADATA_URL = 'https://kzoeps.com/client-metadata.json'
 

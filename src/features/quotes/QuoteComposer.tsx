@@ -24,7 +24,7 @@ export function QuoteComposer({
   defaultColor = 'yellow',
   disabled = false,
   isSubmitting = false,
-  submitLabel = 'Place note',
+  submitLabel = 'Place on canvas',
   className,
 }: QuoteComposerProps) {
   const formId = useId()
@@ -65,81 +65,77 @@ export function QuoteComposer({
   }
 
   return (
-    <form className={clsx('quote-composer', className)} onSubmit={handleSubmit} aria-label="Add note">
+    <form className={clsx('quote-composer', className)} onSubmit={handleSubmit} aria-label="Add a new note">
       <div className="quote-composer__header">
-        <p className="eyebrow">New paper slip</p>
-        <div>
-          <h2>Add note</h2>
-          <p>Compose a public PDS quote record and place it on the canvas as a stationery slip.</p>
-        </div>
+        <h2>Add a new note</h2>
       </div>
 
       <label className="quote-composer__field" htmlFor={`${formId}-text`}>
-        <span>Note</span>
+        <span>Quote</span>
         <textarea
           id={`${formId}-text`}
           value={text}
           onChange={(event) => setText(event.target.value)}
-          placeholder="Write the note exactly as it should appear…"
+          placeholder="Write your quote here…"
           rows={5}
           disabled={blocked}
           required
         />
       </label>
 
-      <div className="quote-composer__grid">
-        <label className="quote-composer__field" htmlFor={`${formId}-author`}>
-          <span>Author</span>
-          <input
-            id={`${formId}-author`}
-            value={author}
-            onChange={(event) => setAuthor(event.target.value)}
-            placeholder="Optional"
-            disabled={blocked}
-          />
-        </label>
+      <label className="quote-composer__field" htmlFor={`${formId}-author`}>
+        <span>Author</span>
+        <input
+          id={`${formId}-author`}
+          value={author}
+          onChange={(event) => setAuthor(event.target.value)}
+          placeholder="Author name"
+          disabled={blocked}
+        />
+      </label>
 
-        <label className="quote-composer__field" htmlFor={`${formId}-color`}>
-          <span>Color</span>
-          <select
-            id={`${formId}-color`}
-            value={color}
-            onChange={(event) => setColor(event.target.value as QuoteColor)}
-            disabled={blocked}
-          >
-            {QUOTE_COLORS.map((colorOption) => (
-              <option key={colorOption} value={colorOption}>
-                {toTitleCase(colorOption)}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
+      <label className="quote-composer__field" htmlFor={`${formId}-source-title`}>
+        <span>Source title</span>
+        <input
+          id={`${formId}-source-title`}
+          value={sourceTitle}
+          onChange={(event) => setSourceTitle(event.target.value)}
+          placeholder="Source or book title"
+          disabled={blocked}
+        />
+      </label>
 
-      <div className="quote-composer__grid">
-        <label className="quote-composer__field" htmlFor={`${formId}-source-title`}>
-          <span>Source title</span>
-          <input
-            id={`${formId}-source-title`}
-            value={sourceTitle}
-            onChange={(event) => setSourceTitle(event.target.value)}
-            placeholder="Book, talk, article…"
-            disabled={blocked}
-          />
-        </label>
+      <label className="quote-composer__field" htmlFor={`${formId}-source-uri`}>
+        <span>Source URL <span className="quote-composer__optional">(optional)</span></span>
+        <input
+          id={`${formId}-source-uri`}
+          value={sourceUri}
+          onChange={(event) => setSourceUri(event.target.value)}
+          placeholder="https://example.com"
+          type="url"
+          disabled={blocked}
+        />
+      </label>
 
-        <label className="quote-composer__field" htmlFor={`${formId}-source-uri`}>
-          <span>Source URL</span>
-          <input
-            id={`${formId}-source-uri`}
-            value={sourceUri}
-            onChange={(event) => setSourceUri(event.target.value)}
-            placeholder="https://…"
-            type="url"
-            disabled={blocked}
-          />
-        </label>
-      </div>
+      <fieldset className="quote-composer__field quote-composer__swatch-field">
+        <legend>Note color</legend>
+        <div className="quote-composer__swatches">
+          {QUOTE_COLORS.map((colorOption) => (
+            <label key={colorOption} className="quote-composer__swatch-option" data-color={colorOption}>
+              <input
+                type="radio"
+                name={`${formId}-color`}
+                value={colorOption}
+                checked={color === colorOption}
+                onChange={() => setColor(colorOption)}
+                disabled={blocked}
+              />
+              <span className="quote-composer__swatch" aria-hidden="true" />
+              <span className="quote-composer__swatch-label">{toTitleCase(colorOption)}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
 
       {localError ? (
         <p className="quote-composer__error" role="alert">

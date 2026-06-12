@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
 import { AuthToolbar } from '../features/auth/AuthToolbar'
 import { useActiveAuthSessionQuery } from '../features/auth/authQueries'
 import { CanvasPage } from '../features/canvas/CanvasPage'
-import { useHandleIdentityQuery } from '../features/identity/identityQueries'
+import { useHandleIdentityQuery, usePublicBskyProfileQuery } from '../features/identity/identityQueries'
 import { normalizeRouteHandle, validateRouteHandle } from '../lib/atproto/identity'
 import { Route as rootRoute } from './__root'
 
@@ -21,6 +21,7 @@ function PublicHandleRoute() {
   const validationError = getHandleValidationError(normalizedHandle)
   const sessionQuery = useActiveAuthSessionQuery()
   const identityQuery = useHandleIdentityQuery(validationError || routeHandle !== normalizedHandle ? null : normalizedHandle)
+  const profileQuery = usePublicBskyProfileQuery(identityQuery.data?.handle)
 
   if (validationError) {
     return <RouteErrorPage title="This path is not a notes handle" message={validationError.message} />
@@ -32,10 +33,12 @@ function PublicHandleRoute() {
 
   if (identityQuery.isPending) {
     return (
-      <section className="placeholder-page" aria-labelledby="resolve-handle-title">
-        <p className="eyebrow">ATProto identity</p>
-        <h1 id="resolve-handle-title">Resolving handle</h1>
-        <p role="status">Looking up @{normalizedHandle}, then reading notes from that DID's public PDS repo…</p>
+      <section className="minimal-status-page" aria-labelledby="resolve-handle-title">
+        <div className="minimal-status-card">
+          <span className="minimal-status-dot" aria-hidden="true" />
+          <h1 id="resolve-handle-title">Opening board</h1>
+          <p role="status">@{normalizedHandle}</p>
+        </div>
       </section>
     )
   }
@@ -73,9 +76,9 @@ function PublicHandleRoute() {
       />
       <AuthToolbar
         ownerHandle={ownerIdentity.handle}
-        ownerDid={ownerIdentity.did}
+        ownerDisplayName={profileQuery.data?.displayName}
+        ownerAvatarUrl={profileQuery.data?.avatar}
         activeDid={activeDid}
-        isOwner={isOwner}
         authErrorMessage={sessionQuery.isError ? sessionQuery.error.message : undefined}
       />
     </>

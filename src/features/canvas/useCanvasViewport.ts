@@ -222,7 +222,6 @@ export function useCanvasViewport(options: UseCanvasViewportOptions = {}): Canva
       top: 0,
       transform: formatWorldLayerTransform(viewport),
       transformOrigin: '0 0',
-      willChange: 'transform',
     }),
     [viewport],
   )
@@ -257,7 +256,14 @@ function getViewportSize(element: HTMLDivElement | null): CanvasSize {
 function isCanvasPanTarget(event: ReactPointerEvent<HTMLDivElement>): boolean {
   const target = event.target
   if (!(target instanceof Element)) return false
-  return event.currentTarget === target || target.closest('[data-canvas-background="true"]') !== null
+  if (target.closest('[data-canvas-sticky-note="true"], button, a, input, textarea, select, summary, [role="button"], [data-no-canvas-pan="true"]') !== null) {
+    return false
+  }
+
+  return (
+    event.currentTarget === target ||
+    target.closest('[data-canvas-background="true"], [data-canvas-world-layer="true"]') !== null
+  )
 }
 
 function normalizeWheelDelta(event: ReactWheelEvent<HTMLDivElement>, viewportHeight: number): number {

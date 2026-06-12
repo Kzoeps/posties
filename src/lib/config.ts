@@ -24,6 +24,9 @@ export const ROUTE_PATHS = {
  */
 export const ATPROTO_PUBLIC_RESOLVER_SERVICE = 'https://bsky.social' as const
 
+/** Public Bluesky AppView used for unauthenticated profile metadata such as avatars and display names. */
+export const ATPROTO_PUBLIC_APPVIEW_SERVICE = 'https://public.api.bsky.app' as const
+
 /**
  * Root path segments that belong to the app or static assets, not public handle pages.
  * Keep this centralized so future internal routes cannot be accidentally captured by `/:handle`.
