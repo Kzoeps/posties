@@ -20,7 +20,7 @@ Date: 2026-05-21
 - **Handle/DID split:** handles are URL-facing and mutable; records are stored, queried, and cached by stable owner DID. Do not add handle fields to quote or settings records.
 - **Home route:** signed-out `/` is a landing page. Signed-in `/` resolves the active DID to the current handle and redirects to `/:handle`.
 - **Canonicalization:** public handle pages normalize casing/leading `@`, then canonicalize to the owner DID document's current handle when it differs.
-- **Ownership UI:** public pages are readable by everyone, but Add/Edit/Delete/drag/retry controls render only when the active OAuth DID equals the page owner DID.
+- **Ownership UI:** public pages are readable by everyone. Add/Edit/Delete/retry controls and persisted moves are owner-only, but any viewer can rearrange notes locally without writing positions to the PDS.
 - **Public toolbar:** `/:handle` shows the owner public avatar, display name, handle, an icon-only share button that copies the page URL, and sign-in/logout controls.
 
 ## Known limitations

@@ -46,7 +46,7 @@ Signed-in owner write flow still uses OAuth and compares the active OAuth DID wi
 
 Write flow:
 
-- Writes are owner-only in the UI: Add/Edit/Delete/drag/retry controls are rendered only when `activeDid === ownerDid`.
+- Writes are owner-only in the UI: Add/Edit/Delete/retry controls and persisted moves are available only when `activeDid === ownerDid`; non-owners can drag notes locally without PDS writes.
 - Create uses `com.atproto.repo.createRecord` and lets the PDS generate a `tid` rkey.
 - Edit and move use `com.atproto.repo.putRecord` with the latest known `cid` as `swapRecord` when available.
 - Delete uses `com.atproto.repo.deleteRecord` with `swapRecord` when available.
@@ -76,7 +76,7 @@ One record represents one sticky note on the owner's infinite canvas.
 
 ### Coordinates
 
-Coordinates are integer world coordinates, not screen pixels. Panning and zooming the viewport must not change stored quote positions. During drag, UI code can use floating-point math for smooth movement, but final persisted `x` and `y` values must be rounded to integers before writing to the PDS.
+Coordinates are integer world coordinates, not screen pixels. Panning and zooming the viewport must not change stored quote positions. During drag, UI code can use floating-point math for smooth movement, but final persisted `x` and `y` values must be rounded to integers before writing to the PDS. Viewer-only drags are accepted locally in the browser and are not written back.
 
 The v1 placement algorithm ignores rotation for collision checks and uses axis-aligned bounds plus a gap. That keeps placement deterministic and avoids tying record validation to browser-specific transform math.
 

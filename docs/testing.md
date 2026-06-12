@@ -52,12 +52,12 @@ The mock boundary lives in `src/test/mocks/atprotoHandlers.ts` and persists dete
 ### What mocked e2e proves
 
 - Signed-out `/` is a landing page.
-- Signed-out users can open public `/:handle` pages and remain read-only.
+- Signed-out users can open public `/:handle` pages, rearrange notes locally, and remain read-only from the PDS perspective.
 - Non-canonical handle URLs redirect to the DID document's current handle.
 - The user can sign in through the app's OAuth UI path when the mock boundary is enabled and lands on their handle page.
 - The copy-share-link button works in the browser UI.
 - The canvas can create, reload, move, reload again, edit, and delete a quote on the owner page.
-- Signed-in non-owners remain read-only on another user's page.
+- Signed-in non-owners can rearrange notes locally but remain unable to write another user's page.
 - Persistent rotation and world coordinates survive reloads in the app state model.
 - A mocked create failure leaves the composer recoverable.
 
@@ -67,7 +67,7 @@ The mock boundary lives in `src/test/mocks/atprotoHandlers.ts` and persists dete
 - A real DID document exposes the expected `at://<handle>` alias and `#atproto_pds` endpoint.
 - A real PDS accepts or returns custom records for this app.
 - Production `client_id`, client metadata hosting, and redirect URIs are configured correctly.
-- DNS and HTTPS for `kzoeps.com` are deployed.
+- DNS and HTTPS for `posties.kzoeps.com` are deployed.
 - Browser storage survives every production privacy mode or enterprise policy.
 
 ## Manual real-PDS checklist
@@ -81,7 +81,7 @@ Run this before release or after changing OAuth/PDS code. Use a test account and
    ```
 
 2. Open `http://127.0.0.1:5173` while signed out and confirm the landing page appears.
-3. Open `http://127.0.0.1:5173/<handle>` while signed out and confirm public records load without OAuth and no Add/Edit/Delete controls appear.
+3. Open `http://127.0.0.1:5173/<handle>` while signed out and confirm public records load without OAuth, no Add/Edit/Delete controls appear, and local note rearranging does not write to the PDS.
 4. Log in with a real ATProto handle.
 5. Confirm `/` redirects to the canonical handle page and the toolbar shows the owner handle, owner DID, public-data warning, and copy-share-link button.
 6. Create a quote.
@@ -92,8 +92,8 @@ Run this before release or after changing OAuth/PDS code. Use a test account and
 11. Reload the page and confirm the edit persisted.
 12. Delete the quote.
 13. Reload the page and confirm the quote stays deleted.
-14. Log out and reopen the handle page; confirm public read-only behavior still works.
-15. Log in as a different account and open the first account's handle page; confirm it remains read-only.
+14. Log out and reopen the handle page; confirm public read-only behavior still works while local note rearranging remains possible.
+15. Log in as a different account and open the first account's handle page; confirm local note rearranging works but does not persist or expose write controls.
 16. Optional: inspect the test account repo with AT Protocol tooling and verify records are under:
 
     ```text

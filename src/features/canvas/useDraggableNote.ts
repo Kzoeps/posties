@@ -17,12 +17,15 @@ export type UseDraggableNoteOptions = {
   noteId: string
   /** Latest persisted top-left note position in canvas world coordinates. */
   position: CanvasPoint
-  /** Current canvas zoom multiplier; screen drag deltas are divided by this value. */
-  zoom: number
+  /**
+   * Current canvas zoom multiplier, or a stable getter for it; screen drag deltas are divided by this value.
+   * Use a getter when many notes need the latest zoom without rerendering each note on every viewport change.
+   */
+  zoom?: number | (() => number)
   /** Disables drag start while a note is being created, deleted, or otherwise unavailable. */
   disabled?: boolean
-  /** Persists the final rounded world position after the pointer is released. */
-  onMoveEnd: (position: CanvasPoint) => MaybePromise<void>
+  /** Persists the final rounded world position after the pointer is released; omit it for viewer-only local moves. */
+  onMoveEnd?: (position: CanvasPoint) => MaybePromise<void>
 }
 
 /** Pointer handlers that should be attached to the note's canvas-positioned wrapper. */
@@ -31,9 +34,9 @@ export type DraggableNoteHandlers = {
   onPointerDown: (event: ReactPointerEvent<HTMLDivElement>) => void
   /** Updates the local world position while the active pointer moves. */
   onPointerMove: (event: ReactPointerEvent<HTMLDivElement>) => void
-  /** Stops dragging and persists the final rounded world position. */
+  /** Stops dragging and either saves or locally accepts the final rounded world position. */
   onPointerUp: (event: ReactPointerEvent<HTMLDivElement>) => void
-  /** Stops dragging without writing when the browser cancels the pointer stream. */
+  /** Stops dragging and restores the last accepted position when the browser cancels the pointer stream. */
   onPointerCancel: (event: ReactPointerEvent<HTMLDivElement>) => void
 }
 
@@ -47,7 +50,7 @@ export type DraggableNoteController = {
   isDragging: boolean
   /** True while the final drag position is being persisted. */
   isSaving: boolean
-  /** True when the displayed position differs from the last known persisted position. */
+  /** True when the displayed position differs from the last accepted or persisted position. */
   hasUnsavedPosition: boolean
   /** User-facing error from the last failed movement save. */
   errorMessage?: string
@@ -69,13 +72,15 @@ type ActiveDrag = {
  *
  * The hook captures the active pointer on the note wrapper, stops propagation so the canvas does not pan,
  * divides screen deltas by the current zoom, updates local position during movement, and calls `onMoveEnd`
- * only once on pointer release with rounded integer world coordinates.
+ * once on pointer release when persistence is configured. Without `onMoveEnd`, the final position is local-only.
  */
 export function useDraggableNote(options: UseDraggableNoteOptions): DraggableNoteController {
+  const { noteId, position, zoom = 1, disabled = false, onMoveEnd } = options
   const activeDragRef = useRef<ActiveDrag | null>(null)
-  const persistedPositionRef = useRef<CanvasPoint>(options.position)
-  const displayPositionRef = useRef<CanvasPoint>(options.position)
-  const [displayPosition, setDisplayPositionState] = useState<CanvasPoint>(options.position)
+  const propPositionRef = useRef<CanvasPoint>(position)
+  const persistedPositionRef = useRef<CanvasPoint>(position)
+  const displayPositionRef = useRef<CanvasPoint>(position)
+  const [displayPosition, setDisplayPositionState] = useState<CanvasPoint>(position)
   const [isDragging, setIsDragging] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | undefined>()
@@ -86,36 +91,44 @@ export function useDraggableNote(options: UseDraggableNoteOptions): DraggableNot
   }, [])
 
   useEffect(() => {
-    persistedPositionRef.current = options.position
+    if (pointsEqual(propPositionRef.current, position)) return
 
-    if (!activeDragRef.current && !isSaving && !errorMessage) {
-      setDisplayPosition(options.position)
+    propPositionRef.current = position
+    persistedPositionRef.current = position
+
+    if (!activeDragRef.current && !isSaving && !errorMessage && !pointsEqual(displayPositionRef.current, position)) {
+      setDisplayPosition(position)
     }
-  }, [errorMessage, isSaving, options.position, setDisplayPosition])
+  }, [errorMessage, isSaving, position, setDisplayPosition])
 
-  const persistPosition = useCallback(
+  const finishMove = useCallback(
     async (position: CanvasPoint) => {
       const roundedPosition = roundCanvasPosition(position)
       setDisplayPosition(roundedPosition)
-      setIsSaving(true)
       setErrorMessage(undefined)
 
+      if (!onMoveEnd) {
+        persistedPositionRef.current = roundedPosition
+        return
+      }
+
+      setIsSaving(true)
       try {
-        await options.onMoveEnd(roundedPosition)
+        await onMoveEnd(roundedPosition)
         persistedPositionRef.current = roundedPosition
         setDisplayPosition(roundedPosition)
       } catch (error) {
-        setErrorMessage(getMoveErrorMessage(options.noteId, error))
+        setErrorMessage(getMoveErrorMessage(noteId, error))
       } finally {
         setIsSaving(false)
       }
     },
-    [options, setDisplayPosition],
+    [noteId, onMoveEnd, setDisplayPosition],
   )
 
   const handlePointerDown = useCallback(
     (event: ReactPointerEvent<HTMLDivElement>) => {
-      if (options.disabled || event.button !== 0 || !isNoteDragTarget(event)) return
+      if (disabled || event.button !== 0 || !isNoteDragTarget(event)) return
 
       event.preventDefault()
       event.stopPropagation()
@@ -124,12 +137,12 @@ export function useDraggableNote(options: UseDraggableNoteOptions): DraggableNot
         pointerId: event.pointerId,
         startScreenPoint: { x: event.clientX, y: event.clientY },
         startPosition: displayPositionRef.current,
-        zoomAtStart: normalizeZoom(options.zoom),
+        zoomAtStart: normalizeZoom(readCurrentZoom(zoom)),
       }
       setErrorMessage(undefined)
       setIsDragging(true)
     },
-    [options.disabled, options.zoom],
+    [disabled, zoom],
   )
 
   const handlePointerMove = useCallback(
@@ -169,9 +182,9 @@ export function useDraggableNote(options: UseDraggableNoteOptions): DraggableNot
         return
       }
 
-      await persistPosition(finalPosition)
+      await finishMove(finalPosition)
     },
-    [errorMessage, persistPosition, setDisplayPosition],
+    [errorMessage, finishMove, setDisplayPosition],
   )
 
   const handlePointerUp = useCallback(
@@ -189,8 +202,8 @@ export function useDraggableNote(options: UseDraggableNoteOptions): DraggableNot
   )
 
   const retry = useCallback(async () => {
-    await persistPosition(displayPositionRef.current)
-  }, [persistPosition])
+    await finishMove(displayPositionRef.current)
+  }, [finishMove])
 
   const clearError = useCallback(() => setErrorMessage(undefined), [])
   const roundedDisplayPosition = roundCanvasPosition(displayPosition)
@@ -227,6 +240,10 @@ function roundCanvasPosition(position: CanvasPoint): CanvasPoint {
 
 function pointsEqual(left: CanvasPoint, right: CanvasPoint): boolean {
   return left.x === right.x && left.y === right.y
+}
+
+function readCurrentZoom(zoom: number | (() => number)): number {
+  return typeof zoom === 'function' ? zoom() : zoom
 }
 
 function normalizeZoom(zoom: number): number {

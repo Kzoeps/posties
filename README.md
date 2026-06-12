@@ -7,7 +7,8 @@ V1 scope:
 - one infinite canvas per user
 - shareable public pages at `/:handle`
 - signed-out landing page at `/`
-- owner-only create, edit, move, and delete controls
+- owner-only create, edit, persisted move, and delete controls
+- viewer-local note rearranging that never writes to the owner's PDS
 - persistent note position and rotation
 - public AT Protocol records on the user's PDS
 - local development with ATProto OAuth loopback mode
@@ -106,13 +107,13 @@ Route behavior:
 
 - `/`: signed-out users see a landing page; signed-in users are redirected to their current canonical handle page.
 - `/:handle`: everyone can read the owner's public notes. Non-canonical handle casing or aliases redirect to the DID document's current handle when it can be resolved.
-- owner viewers see Add/Edit/Delete/drag/retry controls.
-- signed-out viewers and signed-in non-owners see a read-only page with no write controls.
+- owner viewers see Add/Edit/Delete/retry controls, and note moves persist to the owner's PDS.
+- signed-out viewers and signed-in non-owners can rearrange notes locally, but the page remains read-only and never writes those positions.
 - the toolbar shows the page owner's canonical handle, an icon-only share button that copies the page URL, and sign-in/logout controls.
 
 ## UI layout
 
-The public canvas uses a board-first stationery layout: a parchment canvas, literary paper-slip notes, a compact top-right identity/share/logout pill, and a floating **Add note** action for the page owner. The toolbar shows the board owner's public Bluesky avatar, display name, and handle via unauthenticated public AppView reads, so no extra OAuth scope is needed. The login page is a minimal handle field with a single **Log in** action. The add-note action opens a right-side composer panel; signed-out viewers and non-owners see the notes without board chrome or write controls.
+The public canvas uses a board-first stationery layout: a parchment canvas, literary paper-slip notes, a compact top-right identity/share/logout pill, and a floating **Add note** action for the page owner. The toolbar shows the board owner's public Bluesky avatar, display name, and handle via unauthenticated public AppView reads, so no extra OAuth scope is needed. The login page is a minimal handle field with a single **Log in** action. The add-note action opens a right-side composer panel; signed-out viewers and non-owners see the notes without board chrome or write controls, but they can temporarily rearrange notes in their own browser.
 
 Every quote record remains public ATProto/PDS data. The landing page and docs keep the privacy warning; the board view stays visually quiet, so do not use the app for private or sensitive notes.
 
@@ -149,7 +150,7 @@ More detail: [`docs/lexicons.md`](docs/lexicons.md).
 
 The smoke tests verify app behavior across reloads:
 
-- signed-out `/` landing page and public read-only `/:handle` pages
+- signed-out `/` landing page and public `/:handle` pages without write controls
 - non-canonical handle redirect to the current handle
 - mocked OAuth login landing on the owner handle page
 - share button that copies the page URL
@@ -159,7 +160,7 @@ The smoke tests verify app behavior across reloads:
 - reload again
 - edit quote
 - delete quote
-- signed-in non-owner read-only behavior
+- signed-in non-owner local rearranging without write access
 - recover from a mocked create failure
 
 Mocked e2e tests do not prove that a real PDS, real OAuth provider, DNS, or production client metadata is configured correctly. Run the manual real-PDS checklist before release.
@@ -172,7 +173,7 @@ Use a non-sensitive test account because records are public.
 
 1. Start dev on a loopback URL: `pnpm dev --host 127.0.0.1`.
 2. Open `http://127.0.0.1:5173` while signed out and confirm the landing page appears.
-3. Open `http://127.0.0.1:5173/<handle>` while signed out and confirm public records load without OAuth and no Add/Edit/Delete controls appear.
+3. Open `http://127.0.0.1:5173/<handle>` while signed out and confirm public records load without OAuth, no Add/Edit/Delete controls appear, and local note rearranging does not persist.
 4. Log in with a handle.
 5. Confirm `/` redirects to your canonical handle page and the toolbar shows your handle, share button, and logout button.
 6. Use **Add note** to open the creation dialog, then create a quote.
@@ -183,8 +184,8 @@ Use a non-sensitive test account because records are public.
 11. Reload; confirm the edit persisted.
 12. Delete the quote.
 13. Reload; confirm it stays deleted.
-14. Log out and reopen your handle URL; confirm it remains publicly readable and read-only.
-15. Sign in as a different account and open the first account's handle URL; confirm it remains read-only.
+14. Log out and reopen your handle URL; confirm it remains publicly readable and local rearranging does not persist.
+15. Sign in as a different account and open the first account's handle URL; confirm local rearranging works but write controls stay hidden.
 
 ## Known limitations and release follow-ups
 

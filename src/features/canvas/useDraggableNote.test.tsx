@@ -7,7 +7,7 @@ import { useDraggableNote } from './useDraggableNote'
 type HarnessProps = {
   position?: CanvasPoint
   zoom?: number
-  onMoveEnd: (position: CanvasPoint) => Promise<void> | void
+  onMoveEnd?: (position: CanvasPoint) => Promise<void> | void
 }
 
 function DraggableHarness({ position = { x: 10, y: 20 }, zoom = 2, onMoveEnd }: HarnessProps) {
@@ -79,6 +79,20 @@ describe('useDraggableNote', () => {
 
     await waitFor(() => expect(onMoveEnd).toHaveBeenCalledTimes(1))
     expect(onMoveEnd).toHaveBeenCalledWith({ x: 3, y: 2 })
+  })
+
+  it('accepts a local-only final position when no persistence handler is provided', async () => {
+    render(<DraggableHarness />)
+
+    const note = screen.getByTestId('note')
+    fireEvent.pointerDown(note, { pointerId: 1, button: 0, clientX: 100, clientY: 100 })
+    fireEvent.pointerMove(note, { pointerId: 1, clientX: 120, clientY: 140 })
+    fireEvent.pointerUp(note, { pointerId: 1, clientX: 120, clientY: 140 })
+
+    await waitFor(() => expect(note.getAttribute('data-x')).toBe('20'))
+    expect(note.getAttribute('data-y')).toBe('40')
+    expect(note.getAttribute('data-saving')).toBeNull()
+    expect(note.getAttribute('data-error')).toBe('')
   })
 
   it('keeps the unsaved position visible after a failed save and can retry it', async () => {
